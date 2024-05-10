@@ -1,2 +1,2 @@
 ## Deploy Link:
-[Job-portal](https://job-portal-1b14b.web.app)
+[Job-portal](https://job-portal92.netlify.app/)
