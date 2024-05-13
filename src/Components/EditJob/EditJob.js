@@ -1,5 +1,5 @@
 // EditJob.js
-import React, { useState, useEffect } from "react";
+import React, {useEffect, useState} from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Typography, TextField, Button } from "@mui/material";
 
@@ -12,16 +12,6 @@ const EditJob = () => {
     location: "",
     salary: "",
   });
-
-  useEffect(() => {
-    // Fetch job data by id and set it to jobData state
-    const jobs = JSON.parse(localStorage.getItem("jobs")) || [];
-    const job = jobs.find((job) => job.id === Number(id));
-    if (job) {
-      setJobData(job);
-    }
-  }, [id]);
-
   const handleChange = (e) => {
     const { name, value } = e.target;
     setJobData((prevData) => ({
@@ -30,17 +20,52 @@ const EditJob = () => {
     }));
   };
 
+  const [jobs, setJobs] = useState([]);
+
+  // eslint-disable-next-line react-hooks/rules-of-hooks
+  useEffect(() => {
+    fetch("http://localhost:8000/jobs")
+      .then((res) => res.json())
+      .then((data) => {
+        setJobs(data);
+        console.log(data);
+      });
+  }, [id]);
+
   const handleSubmit = (e) => {
     e.preventDefault();
-    // Update job data in local storage
-    const jobs = JSON.parse(localStorage.getItem("jobs")) || [];
+    // Assuming jobData is correctly populated with data for a single job
+    const job = {
+      title: jobData.title,
+      description: jobData.description,
+      location: jobData.location,
+      salary: jobData.salary,
+    };
     const updatedJobs = jobs.map((job) => {
-      if (job.id === Number(id)) {
+      console.log(job._id);
+      if (job._id === Number(id)) {
         return { ...job, ...jobData };
       }
       return job;
     });
-    localStorage.setItem("jobs", JSON.stringify(updatedJobs));
+    job._id=id
+    console.log(updatedJobs);
+    fetch(`http://localhost:8000/jobs/${id}`, {
+      method: "PATCH",
+      headers: {
+        "content-type": "application/json",
+      },
+      body: JSON.stringify(job),
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        console.log(data);
+        console.log(job);
+        if (data.modifiedCount > 0) {
+          // eslint-disable-next-line no-restricted-globals
+          location.reload()
+        }
+      });
     // Redirect to view jobs page after job editing
     navigator("/jobs");
   };

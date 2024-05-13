@@ -21,63 +21,70 @@ const Login = () => {
     formState: { errors },
   } = useForm();
 
-  // const jsonWeb = (jsonUser) => {
-  //   fetch("http://localhost:5001/jwt", {
-  //     method: "POST",
-  //     headers: {
-  //       "content-type": "application/json",
-  //     },
-  //     body: JSON.stringify(jsonUser),
-  //   })
-  //     .then((res) => res.json())
-  //     .then((data) => {
-  //       console.log(data);
-  //       localStorage.setItem("genius-token", data.token);
-  //       navigate(from, { replace: true });
-  //     });
-  // };
+  const token =
+    "c30111a41567da8cd73bd5079a7a1d8185e96b119a9bcde7264881c66e78cfc89f88c8d4a52fbd0040f83154b489cd0bd5549bc1463e961613ef1947b229ec5c";
+  // Set the token in localStorage
+  localStorage.setItem("job-token", token);
+  const jsonWeb = (jsonUser) => {
+    const token = localStorage.getItem("job-token");
+    fetch("http://localhost:8000/jwt", {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(jsonUser),
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        console.log(data);
+        console.log("hello");
+        // localStorage.setItem("job-token", data.token);
+        navigate(from, { replace: true });
+      });
+  };
 
-   const handleLogin = (event) => {
-     event.preventDefault();
-     const form = event.target;
-     const email = form.email.value;
-     const password = form.password.value;
-     form.reset()
-     login(email, password)
-       .then((result) => {
-         const user = result.user;
-         setSuccess(true);
-         form.reset();
-         console.log(user);
-         navigate(from,{replace:true})
-        //  const currentUser = {
-        //    email: user.email,
-        //  };
+  const handleLogin = (event) => {
+    event.preventDefault();
+    const form = event.target;
+    const email = form.email.value;
+    const password = form.password.value;
+    form.reset();
+    login(email, password)
+      .then((result) => {
+        const user = result.user;
+        setSuccess(true);
+        form.reset();
+        console.log(user);
+        navigate(from, { replace: true });
+        const currentUser = {
+          email: user.email,
+        };
 
-        //  jsonWeb(currentUser);
-       })
-       .catch((error) => {
-         console.log(error);
-       });
-   };
+        jsonWeb(currentUser);
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+  };
 
-   const logInWithGoogle = () => {
-     googleUser()
-       .then((result) => {
-         const user = result.user;
-         setSuccess(true);
-         console.log(user);
-         navigate(from, { replace: true });
-        //  const currentUser = {
-        //    email: user.email,
-        //  };
-        //  jsonWeb(currentUser);
-       })
-       .catch((error) => {
-         console.log(error);
-       });
-   };
-   console.log(success)
+  const logInWithGoogle = () => {
+    googleUser()
+      .then((result) => {
+        const user = result.user;
+        setSuccess(true);
+        console.log(user);
+        navigate(from, { replace: true });
+        const currentUser = {
+          email: user.email,
+        };
+        jsonWeb(currentUser);
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+  };
+  console.log(success);
   return (
     <Container
       sx={{

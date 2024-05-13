@@ -1,16 +1,54 @@
 // ViewJobs.js
-import React from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Typography, Button } from "@mui/material";
+import { AuthContext } from "../Auth/AuthProvider";
+
 
 const ViewJobs = () => {
-  const jobs = JSON.parse(localStorage.getItem("jobs")) || [];
+  const { user, logOut } = useContext(AuthContext);
+  const [jobs, setJob] = useState([]);
+  useEffect(() => {
+    fetch("http://localhost:8000/jobs", {
+      headers: {
+        authorization: `Bearer ${localStorage.getItem("job-token")}`,
+      },
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        setJob(data);
+        console.log(data);
+        console.log(user.email)
+      });
+  }, [user?.email, logOut]);
 
   const handleDeleteJob = (id) => {
-    const updatedJobs = jobs.filter((job) => job.id !== id);
-    localStorage.setItem("jobs", JSON.stringify(updatedJobs));
-    // Refresh the page or update the state to reflect the changes
-    window.location.reload(); // Refresh the page
+    // const updatedJobs = jobs.filter((job) => job.id !== id);
+    // localStorage.setItem("jobs", JSON.stringify(updatedJobs));
+    // // Refresh the page or update the state to reflect the changes
+    const proceed = window.confirm(
+      "Are you sure, you want to cancel this order"
+    );
+    console.log(id);
+    if (proceed) {
+      fetch(`http://localhost:8000/jobs/${id}`, {
+        method: "DELETE",
+        headers: {
+          authorization: `Bearer ${localStorage.getItem("job-token")}`,
+        },
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          console.log(data);
+          if (data.deletedCount > 0) {
+            alert("deleted successfully");
+            const remaining = jobs.filter((job) => job._id !== id);
+            setJob(remaining);
+            // eslint-disable-next-line no-restricted-globals
+            location.reload()
+          }
+        });
+    }
   };
 
   return (
@@ -27,7 +65,7 @@ const ViewJobs = () => {
       >
         {jobs.map((job) => (
           <div
-            key={job.id}
+            key={job._id}
             style={{
               display: "flex",
               flexDirection: "row",
@@ -56,7 +94,10 @@ const ViewJobs = () => {
             <div>
               <Button
                 component={Link}
-                to={`/jobs/${job.id}/edit`}
+                to={{
+                  pathname: `/jobs/${job._id}/edit`,
+                  state: { jobs: jobs }, // Pass the job data using the state prop
+                }}
                 variant="contained"
                 color="secondary"
                 style={{ marginRight: "10px" }}
@@ -64,7 +105,7 @@ const ViewJobs = () => {
                 Edit
               </Button>
               <Button
-                onClick={() => handleDeleteJob(job.id)}
+                onClick={() => handleDeleteJob(job._id)}
                 variant="contained"
                 color="error"
               >
